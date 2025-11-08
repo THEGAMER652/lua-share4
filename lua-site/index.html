@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lua Gist Creator - Ultra Premium</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(150% 150% at 50% 0%, #0f172a 0%, #000000 100%);
+      color: white;
+      overflow: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 60px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 1s ease-out;
+    }
+    .glow {
+      position: absolute;
+      filter: blur(120px);
+      opacity: 0.35;
+      animation: float 14s ease-in-out infinite alternate;
+    }
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: white;
+      opacity: 0.2;
+      border-radius: 50%;
+      animation: drift 8s infinite ease-in-out;
+    }
+    @keyframes drift {
+      0% { transform: translateY(0px) translateX(0px); opacity: 0.1; }
+      50% { transform: translateY(-40px) translateX(30px); opacity: 0.4; }
+      100% { transform: translateY(0px) translateX(0px); opacity: 0.1; }
+    }
+    @keyframes float {
+      0% { transform: translateY(0px) translateX(0px); }
+      100% { transform: translateY(-70px) translateX(60px); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .loader {
+      height: 4px;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #9333ea, #ec4899);
+      border-radius: 9999px;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 25px #9333ea90;
+    }
+    .footer {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.9rem;
+      color: #9ca3af;
+      animation: pulse 3s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+    .animate-gradient {
+      background-size: 300% 300%;
+      animation: gradientMove 8s ease infinite;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .popup-enter {
+      animation: popupShow 0.4s ease forwards;
+    }
+    @keyframes popupShow {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen relative">
+
+  <!-- Floating glows -->
+  <div class="glow w-[500px] h-[500px] bg-blue-700 rounded-full top-[-10%] left-[15%]"></div>
+  <div class="glow w-[600px] h-[600px] bg-purple-700 rounded-full bottom-[-20%] right-[10%]"></div>
+  <div class="glow w-[400px] h-[400px] bg-pink-600 rounded-full top-[40%] left-[35%] opacity-20"></div>
+
+  <!-- Floating particles -->
+  <script>
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.top = Math.random() * 100 + 'vh';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDelay = Math.random() * 8 + 's';
+      document.body.appendChild(p);
+    }
+  </script>
+
+  <!-- Main glass card -->
+  <div class="glass relative p-10 rounded-3xl w-full max-w-xl z-10 border border-white/10 text-center animate-fadein">
+    <h1 class="text-3xl font-extrabold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-gradient text-transparent bg-clip-text mb-2">Lua Gist Creator</h1>
+    <p class="text-gray-400 text-sm mb-8 animate-pulse">Create and share Lua scripts as GitHub Gists 🚀</p>
+
+    <textarea id="code" placeholder="Write your Lua code here..."
+      class="w-full h-64 p-4 rounded-xl bg-black/30 border border-white/10 text-sm text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-inner"></textarea>
+
+    <div class="loader mt-5 mx-auto" id="loader"></div>
+
+    <button id="createRaw"
+      class="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 font-semibold hover:scale-[1.05] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-purple-900/40 animate-gradient">
+      ⚡ Create Raw Link
+    </button>
+
+    <div class="mt-5">
+      <input id="rawLink" readonly 
+        class="w-full p-3 rounded-xl bg-black/40 border border-white/10 text-sm text-gray-300 placeholder-gray-500 focus:outline-none cursor-pointer"
+        placeholder="Your raw link will appear here...">
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 hidden px-6 py-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium shadow-xl transition-all duration-300">
+    ✅ Raw link copied!
+  </div>
+
+  <!-- Popup -->
+  <div id="popup" class="hidden fixed inset-0 flex items-center justify-center bg-black/70 z-50 transition-opacity">
+    <div class="glass p-8 rounded-2xl w-80 text-center popup-enter">
+      <h2 class="text-xl font-semibold mb-4 bg-gradient-to-r from-pink-400 to-purple-500 text-transparent bg-clip-text animate-gradient">Hey!</h2>
+      <p class="text-gray-300 text-sm mb-6">Please write some Lua code before creating a link.</p>
+      <button id="closePopup" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-medium hover:scale-[1.05] transition-all">Got it!</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">Made by <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 font-semibold animate-gradient">The_gamer652</span> 💻</div>
+
+  <script>
+    const loader = document.getElementById('loader');
+    const popup = document.getElementById('popup');
+    const closePopup = document.getElementById('closePopup');
+    const toast = document.getElementById('toast');
+
+    const showToast = (msg, color = 'from-green-500 to-emerald-600') => {
+      toast.classList = `fixed bottom-8 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full bg-gradient-to-r ${color} text-white font-medium shadow-xl transition-all duration-300`;
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      toast.style.opacity = '1';
+      toast.style.transform = 'translate(-50%, 0)';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, 20px)';
+        setTimeout(() => toast.classList.add('hidden'), 300);
+      }, 2500);
+    };
+
+    const showPopup = () => popup.classList.remove('hidden');
+    const hidePopup = () => {
+      popup.style.opacity = '0';
+      setTimeout(() => {
+        popup.classList.add('hidden');
+        popup.style.opacity = '1';
+      }, 300);
+    };
+
+    closePopup.addEventListener('click', hidePopup);
+
+    document.getElementById('createRaw').addEventListener('click', async () => {
+      const code = document.getElementById('code').value;
+      if (!code.trim()) {
+        showPopup();
+        return;
+      }
+
+      loader.style.width = '0%';
+      loader.style.transition = 'none';
+      setTimeout(() => {
+        loader.style.transition = 'width 1s ease';
+        loader.style.width = '70%';
+      }, 50);
+
+      const filename = 'script.lua';
+      const resp = await fetch('/api/create-gist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, filename })
+      });
+      const data = await resp.json();
+
+      loader.style.width = '100%';
+      setTimeout(() => (loader.style.width = '0%'), 800);
+
+      if (data.raw) {
+        const rawLink = document.getElementById('rawLink');
+        rawLink.value = data.raw;
+        rawLink.select();
+        document.execCommand('copy');
+        showToast('✅ Raw link created & copied!');
+      } else {
+        showToast('❌ Error creating gist!', 'from-red-500 to-pink-600');
+        console.error(data);
+      }
+    });
+  </script>
+</body>
+</html>
